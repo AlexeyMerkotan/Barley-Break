@@ -1,0 +1,17 @@
+body{
+    font: 11pt Arial, Helvetica, sans-serif;
+    background: #FFF;
+}
+.block{
+    width: 600px;
+    height: 600px;
+}
+.bl {
+    padding: 8%;
+    text-align: center;
+    float: left;
+    display: block;
+    width: 122px;
+    height: 122px;
+    border: 1px solid;
+}
