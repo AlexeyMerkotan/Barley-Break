@@ -12,6 +12,12 @@
 
     field=4;
 
+    timer=0;
+
+    name_picture="American_beauty_by_edwheeler_";
+
+    type_picture="jpg";
+
 
 
 
@@ -37,42 +43,57 @@
     }
     Puzzle.prototype.click=function () {
         if(moves==0)
-            var a = new Date().getTime(); ;
-        var a=$(this).html();
+            timer = new Date().getTime();
+        var a=$(this).attr('id');
         var namber=$.makeArray($(".bl"));
         var j=0;
         for(j=0; j<=namber.length; j++)
-            if(namber[j].innerText==a)
+            if(namber[j].id==a)
                 break;
         var i=0
         for(i=0; i<=namber.length; i++)
-            if(namber[i].innerText=="")
+            if(namber[i].id=="")
                     break;
         if(!Puzzle.prototype.checkGames(namber)){
            moves++;
             if(Puzzle.prototype._set(i,j)){
-                namber[i].innerText=a;
-                Puzzle.prototype._shift(this);
+                namber[i].id=a;
+                Puzzle.prototype._shift(this,a);
             }
         }else{
-            var result = new Date().getTime() - a;
-            alert("Игра окончина!\n Xодов: " + moves + " \n Игровое время: " + result);
+            Puzzle.prototype.game_end();
         }
 
 
     }
 
 
-    Puzzle.prototype.timer=function () {
-        $("#example_1").everyTime(1000, function(i) {
-            $(this).text(i);
-        });
+
+    Puzzle.prototype.Time=function () {
+
+
+
     }
-    Puzzle.prototype._shift=function (plagin) {
+
+    
+    Puzzle.prototype.game_end=function()
+    {
+        alert("Игра окончина!\n Xодов: " + moves + " \n Игровое время: " + result);
+        var title = prompt('Name: ');
+        $.post("save.php", { name: title, time: result ,move: moves});
+    }
+
+
+
+    Puzzle.prototype._shift=function (plagin,id) {
         $(".bl").addClass("block_color");
+        $(plagin).removeAttr("id "+id);
+        $("#"+id).html('<img src="/img/American_beauty_by_edwheeler_'+id+'.jpg">');
         $(plagin).removeClass("block_color");
         $(plagin).empty();
-        $(plagin).css("background","#85d0e2");
+        $(".badge").empty();
+        $(".badge").html(moves);
+
     }
 
     Puzzle.prototype._set=function (i,j) {
@@ -125,20 +146,50 @@
         return i;
 
     }
+
+
+
+    Puzzle.prototype.Moves=function (moves) {
+        var scroll_bar='<ul class="nav nav-pills" role="tablist">'+
+            '<li role="presentation">Ход : <span class="badge">'+moves+'</span></li>'+
+            '<li role="presentation">Время : <span class="badge">'+timer+'</span></li>'+
+            '</ul>';
+        return scroll_bar;
+    }
+    Puzzle.prototype.Start=function () {
+
+        moves=0;
+        $('.block').empty();
+        var elements=Puzzle.prototype.random();
+
+        for(var i=0; i<elements.length; i++){
+            if(elements[i]){
+                var a=$('<div class="bl block_color" id="'+elements[i]+'"><img src="/img/'+name_picture+elements[i]+'.'+type_picture+'" alt="/img/'+name_picture+elements[i]+'.'+type_picture+'"></div>').appendTo('.block');
+            }
+            else{
+                var a=$('<div class="bl"></div>').appendTo('.block');
+            }
+            a.click(Puzzle.prototype.click);
+
+        }
+        $(".block").css("background-image","url(/img/American_beauty_by_edwheeler.jpg)");
+        $(".block").css("background-size"," cover");
+        var restart=$('<div class="scrol_bar"><button type="button" class="btn btn-default">Restart</button></div>').appendTo('.block');
+        restart.click(Puzzle.prototype.Start);
+        $(Puzzle.prototype.Moves(moves)).appendTo(".scrol_bar");
+
+    }
     Puzzle.prototype.init = function(plagin) {
 
-            var elements=this.random();
 
-            for(var i=0; i<elements.length; i++){
-                if(elements[i]){
-                    var a=$('<div class="bl block_color">'+elements[i]+'</div>').appendTo(plagin);
-                }
-                else
-                    var a=$('<div class="bl"></div>').appendTo(plagin);
-                a.mouseenter(this.hover);
-                a.click(this.click);
+        for(var i=0; i<=size; i++){
+            $('<div class="bl block_color"><img src="/img/'+name_picture+(i+1)+'.'+type_picture+'" alt="/img/'+name_picture+(i+1)+'.'+type_picture+'"></div>').appendTo(plagin);
+        }
+        var start=$('<button type="button" class="btn btn-default">Start</button>').appendTo(plagin);
 
-            }
+
+        start.click(this.Start);
+
 
     }
 
