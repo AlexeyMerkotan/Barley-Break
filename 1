@@ -1,0 +1,8 @@
+var counter=0;
+function timer(){
+counter++;
+document.getElmentById("count").innerHTML = counter;
+setTimeout("timer()",1000);
+}
+<div onload="timer()"> </div>
+<span id="count">-1</span>
