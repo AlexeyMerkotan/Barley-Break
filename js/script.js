@@ -1,49 +1,31 @@
 (function($){
 
-    options = $.extend({
-        defColor:"#F0F8FF",
-        hoverColor:"#FAEBD7"
-    });
 
-
-    size=15;
 
     moves=0;
 
-    field=4;
-
     timer=0;
 
-    name_picture="American_beauty_by_edwheeler_";
+    hour=0;
 
-    type_picture="jpg";
+    minutes=0;
 
-
-
-
-    function Puzzle(plagin,options) {
+    var options=[];
 
 
-        this.init(plagin);
+
+
+    function Puzzle(plagin,option) {
+
+        options=option;
+        this.init(plagin,option);
 
     }
 
+    Puzzle.prototype.language=function () {
 
-
-    Puzzle.prototype.hover=function  () {
-
-
-        $(this).css("background",options.defColor)
-            .mouseenter( function(){
-                $(this).css("background",options.hoverColor);
-            })
-            .mouseleave( function(){
-                $(this).css("background",options.defColor);
-            });
     }
     Puzzle.prototype.click=function () {
-        if(moves==0)
-            timer = new Date().getTime();
         var a=$(this).attr('id');
         var namber=$.makeArray($(".bl"));
         var j=0;
@@ -69,16 +51,13 @@
 
 
 
-    Puzzle.prototype.Time=function () {
 
 
 
-    }
-
-    
     Puzzle.prototype.game_end=function()
     {
-        alert("Игра окончина!\n Xодов: " + moves + " \n Игровое время: " + result);
+        var result=hour+' h:'+minutes+' m:'+timer+' s';
+        alert(options.game_end+"!\n "+options.move+": " + moves + " \n "+options.timer+": " + result);
         var title = prompt('Name: ');
         $.post("save.php", { name: title, time: result ,move: moves});
     }
@@ -88,7 +67,9 @@
     Puzzle.prototype._shift=function (plagin,id) {
         $(".bl").addClass("block_color");
         $(plagin).removeAttr("id "+id);
-        $("#"+id).html('<img src="/img/American_beauty_by_edwheeler_'+id+'.jpg">');
+        $("#"+id).css("background-position",plagin.style.backgroundPosition);
+        $("#"+id).css("background-image",plagin.style.backgroundImage);
+        $(plagin).attr('style', 'background-position: 99% 99%');
         $(plagin).removeClass("block_color");
         $(plagin).empty();
         $(".badge").empty();
@@ -99,15 +80,15 @@
     Puzzle.prototype._set=function (i,j) {
 
         if( Puzzle.prototype._left(i,j) && Puzzle.prototype._right(i,j))
-            if(j==i+1||j==i-1||j==i+field||j==i-field)
+            if(j==i+1||j==i-1||j==i+options.field||j==i-options.field)
                 return true;
         return false;
     }
 
 
     Puzzle.prototype._left=function (i,j) {
-        if((i+1)%field==0) {
-            if(j%field==0)
+        if((i+1)%options.field==0) {
+            if(j%options.field==0)
                 return false;
         }
         return true;
@@ -115,8 +96,8 @@
 
 
     Puzzle.prototype._right=function (i,j) {
-        if((j+1)%field==0){
-            if(i%field==0)
+        if((j+1)%options.field==0){
+            if(i%options.field==0)
                 return false;
         }
         return true;
@@ -134,59 +115,106 @@
 
     Puzzle.prototype.random=function () {
 
-        var i=[];
-        for(var a=0; a<=size;a++)
-            i.push(a);
-        for (var a = i, b = size; 0 < b; b--) {
+
+        for (var a = $.makeArray($("div .bl")), b =a.length-1 ; 0 < b; b--) {
             var e = Math.floor(Math.random() * (b + 1)),
-                g = i[e];
-            i[e] = i[b];
-            i[b] = g
+                g = a[e];
+            a[e] = a[b];
+            a[b] = g
         }
-        return i;
+        return a;
 
     }
 
 
-
-    Puzzle.prototype.Moves=function (moves) {
-        var scroll_bar='<ul class="nav nav-pills" role="tablist">'+
-            '<li role="presentation">Ход : <span class="badge">'+moves+'</span></li>'+
-            '<li role="presentation">Время : <span class="badge">'+timer+'</span></li>'+
+    Puzzle.prototype.Moves=function () {
+        var scroll_bar='<ul class="nav nav-pills" role="tablist" style="padding-top: 10px;">'+
+            '<li>'+options.move+' : <span class="badge">'+moves+'</span></li>'+
+            '<li>'+options.timer+' : <span class="label label-default" id="count">0h: 0m: 0s</span></li>'+
             '</ul>';
         return scroll_bar;
     }
+
+
+
+    Puzzle.prototype.Timer=function () {
+        if(minutes==59) {
+            hour++;
+            minutes=0;
+        }
+        if(timer==59) {
+            minutes++;
+            timer=0;
+        }
+                timer++;
+                $('#count').html(hour+'h: '+minutes+'m: '+timer+'s');
+                setTimeout(arguments.callee, 1000);
+    }
+
+
+    Puzzle.prototype.Remove=function () {
+        moves=0;
+        timer=0;
+
+    }
     Puzzle.prototype.Start=function () {
 
-        moves=0;
-        $('.block').empty();
+        Puzzle.prototype.Remove();
         var elements=Puzzle.prototype.random();
-
+        $('.block').empty();
         for(var i=0; i<elements.length; i++){
-            if(elements[i]){
-                var a=$('<div class="bl block_color" id="'+elements[i]+'"><img src="/img/'+name_picture+elements[i]+'.'+type_picture+'" alt="/img/'+name_picture+elements[i]+'.'+type_picture+'"></div>').appendTo('.block');
+            if(elements[i].id!=15){
+                var a=$(elements[i]).appendTo('.block');
             }
             else{
-                var a=$('<div class="bl"></div>').appendTo('.block');
+                var a=$('<div class="bl" style="background-position: '+elements[i].style.backgroundPosition+'"></div>').appendTo('.block');
             }
             a.click(Puzzle.prototype.click);
 
         }
-        $(".block").css("background-image","url(/img/American_beauty_by_edwheeler.jpg)");
+
+        $(".block").css("background-image","url(/img/"+options.transparency+")");
         $(".block").css("background-size"," cover");
-        var restart=$('<div class="scrol_bar"><button type="button" class="btn btn-default">Restart</button></div>').appendTo('.block');
+
+
+
+
+
+
+        var buttom='<div class="scrol_bar"><button type="button" class="btn btn-default">'+options.buttom_2+'</button></div>';
+
+        var restart=$(buttom).appendTo('.block');
         restart.click(Puzzle.prototype.Start);
-        $(Puzzle.prototype.Moves(moves)).appendTo(".scrol_bar");
+        restart.load( Puzzle.prototype.Timer());
+
+        $(Puzzle.prototype.Moves()).appendTo(".scrol_bar");
+
 
     }
-    Puzzle.prototype.init = function(plagin) {
+    Puzzle.prototype.init = function(plagin,options) {
 
 
-        for(var i=0; i<=size; i++){
-            $('<div class="bl block_color"><img src="/img/'+name_picture+(i+1)+'.'+type_picture+'" alt="/img/'+name_picture+(i+1)+'.'+type_picture+'"></div>').appendTo(plagin);
+
+
+        for(var i=0; i<=options.size; i++)
+                $('<div class="bl block_color" id="'+i+'"></div>').appendTo('.block');
+
+        var y=0;
+        var id=0;
+        for(var i=0;i<options.field;i++){
+            var x=0;
+            for(var j=0;j<options.field;j++){
+                $("#"+id).css("background-image","url(/img/"+options.img+")");
+                $("#"+id).css("background-position",""+x+"% "+y+"%");
+
+                x+=(132/options.field);
+                id++;
+            }
+            y+=(132/options.field);
         }
-        var start=$('<button type="button" class="btn btn-default">Start</button>').appendTo(plagin);
 
+        var buttom='<button type="button" class="btn btn-default">'+options.buttom_1+'</button>';
+        var start=$(buttom).appendTo(plagin);
 
         start.click(this.Start);
 
@@ -197,9 +225,20 @@
     $.fn.build_puzzle=function (options) {
 
 
+        options = $.extend({
+            buttom_1: 'Start',
+            buttom_2: 'Restart',
+            move:   'Ход',
+            timer:  'Время',
+            game_end:   'Игра окончина',
+            size:   15,
+            field:  4,
+            img:"American_beauty_by_edwheeler1.jpg",
+            transparency:"American_beauty_by_edwheeler.jpg",
+        },options);
 
 
-        new Puzzle(this);
+        new Puzzle(this,options);
 
     }
 
@@ -211,6 +250,6 @@
 
 
 
-$('.block').build_puzzle();
+$('.block').build_puzzle({buttom_1 : 'Play'});
 
 

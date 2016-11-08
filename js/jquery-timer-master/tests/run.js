@@ -1,5 +1,5 @@
 jQuery = {};
-require("../jquery.timer.js");
+require("../../jquery.timer.js");
 var Test = require("./Test.js");
 var TestManager = require("./TestManager.js");
 
