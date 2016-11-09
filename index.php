@@ -15,12 +15,12 @@
 <div class="row">
     <div class="col-md-4 col-md-offset-4 col-sm-4 col-sm-offset-4 col-xs-4 ">
         <h1> Barley-Break </h1>
-        <div class="block"></div>
-        <script>
-            $(function () {
+        <div class="block "></div>
 
-            })
-        </script>
+        <div class="block1"></div>
+
+        <div class="block5"></div>
+
     </div>
 </div>
 
@@ -28,5 +28,12 @@
 <script src="js/jquery-2.1.0.js"></script>
 <script src="js/script.js"></script>
 <script src="js/bootstrap.min.js"></script>
+<script>
+    $(function () {
+        $('.block').build_puzzle({buttom_1 : 'Play'});
+        $('.block1').build_puzzle();
+        $('.block5').build_puzzle({img: 'multfilm_Futurama_minion_Bender_25222.jpg'});
+    })
+</script>
 </body>
 </html>
