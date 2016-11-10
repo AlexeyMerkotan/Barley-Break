@@ -7,32 +7,34 @@
     var options=[];
 
 
-
     function Puzzle(plagin,option) {
 
 
-        plag=Puzzle.prototype;
+        var plag = this;
 
-        Puzzle.prototype.moves=0;
+        plag.moves=0;
 
-        Puzzle.prototype.timer=0;
+        plag.timer=0;
 
-        Puzzle.prototype.hour=0;
+        plag.hour=0;
 
-        Puzzle.prototype.minutes=0;
+        plag.minutes=0;
+
+        plag.field=0;
+
+        plag.timeoutId;
 
         options=option;
         this.init(plagin,option);
 
     }
 
-    Puzzle.prototype.click=function () {
+    Puzzle.prototype.Click=function (plagin,p,th) {
 
-
-        var a=$(this).attr('class');
+        var a=$(th).attr('class');
         a = a.replace(/\D+/g,"");
-        var block=this.parentNode.classList[0];
-        var namber=$.makeArray($("."+block+" .bl"));
+        var block=plagin.selector;
+        var namber=$.makeArray($(block+" .bl"));
         var j=0;
         for(j=0; j<=namber.length; j++)
             if ($(namber[j]).is(".id"+a))
@@ -41,14 +43,13 @@
         for(i=0; i<=namber.length; i++)
             if ($(namber[i]).is(".id"))
                     break;
-        if(!Puzzle.prototype.checkGames(namber)){
-            Puzzle.prototype.moves++;
-            if(Puzzle.prototype._set(i,j)){
-                //namber[i].id=a;
-                Puzzle.prototype._shift(block,this,a);
+
+            p.moves++;
+            if(this._set(i,j)){
+                this._shift(block,th,a,p);
             }
-        }else{
-            Puzzle.prototype.game_end();
+        if(this.checkGames(namber)){
+            this.game_end(p);
         }
 
 
@@ -59,51 +60,51 @@
 
 
 
-    Puzzle.prototype.game_end=function()
+    Puzzle.prototype.game_end=function(p)
     {
-        var result=hour+' h:'+minutes+' m:'+timer+' s';
-        alert(options.game_end+"!\n "+options.move+": " + moves + " \n "+options.timer+": " + result);
+        var result=p.hour+' h:'+p.minutes+' m:'+p.timer+' s';
+        alert(options.game_end+"!\n "+options.move+": " + p.moves + " \n "+options.timer+": " + result);
         var title = prompt('Name: ');
         $.post("save.php", { name: title, time: result ,move: moves});
     }
 
 
 
-    Puzzle.prototype._shift=function (block,plagin,id) {
-        $("."+block+" .id").addClass("block_color");
-        $("."+block+" .id").addClass("id"+id);
+    Puzzle.prototype._shift=function (block,plagin,id,p) {
+        $(block+" .id").addClass("id"+id);
 
 
         $(plagin).removeClass("id"+id);
-        $(plagin).removeClass("block_color");
         $(plagin).addClass("id");
 
         $(".id"+id).removeClass("id");
 
 
-        $("."+block+" .id"+id).css("background-position",plagin.style.backgroundPosition);
-        $("."+block+" .id"+id).css("background-image",plagin.style.backgroundImage);
+        $(block+" .id"+id).css("background-position",plagin.style.backgroundPosition);
+        $(block+" .id"+id).css("background-image",plagin.style.backgroundImage);
+        $(block+" .id"+id).css("background-size",plagin.style.backgroundSize);
         $(plagin).css("background-position","99% 99%");
         $(plagin).css("background-image","");
 
         $(plagin).empty();
-        $("."+block+" .badge").empty();
-        $("."+block+" .badge").html(Puzzle.prototype.moves);
+
+        $(block+" .badge").empty();
+        $(block+" .badge").html(p.moves);
 
     }
 
     Puzzle.prototype._set=function (i,j) {
 
-        if( Puzzle.prototype._left(i,j) && Puzzle.prototype._right(i,j))
-            if(j==i+1||j==i-1||j==i+options.field||j==i-options.field)
+        if( this._left(i,j) && this._right(i,j))
+            if(j==i+1||j==i-1||j==i+this.field||j==i-this.field)
                 return true;
         return false;
     }
 
 
     Puzzle.prototype._left=function (i,j) {
-        if((i+1)%options.field==0) {
-            if(j%options.field==0)
+        if((i+1)%this.field==0) {
+            if(j%this.field==0)
                 return false;
         }
         return true;
@@ -111,8 +112,8 @@
 
 
     Puzzle.prototype._right=function (i,j) {
-        if((j+1)%options.field==0){
-            if(i%options.field==0)
+        if((j+1)%this.field==0){
+            if(i%this.field==0)
                 return false;
         }
         return true;
@@ -120,47 +121,51 @@
 
 
     Puzzle.prototype.checkGames=function (namber) {
-        for(var i=0; i<namber.length; i++){
-            if(namber[i].innerText!=i+1){
-                return false;
-            }
-        }
-        return true;
+        var j=0;
+        for(i=0; i<=namber.length; i++)
+            if ($(namber[i]).is(".id"+(i+1)))
+                j++;
+        if(j==9)
+            return true;
+        return false;
+
     }
 
 
 
 
-    Puzzle.prototype.Moves=function () {
+    Puzzle.prototype.Moves=function (block) {
 
-        var scroll_bar='<ul class="nav nav-pills" role="tablist" style="padding-top: 10px;">'+
-            '<li>'+options.move+' : <span class="badge">'+  this.moves+'</span></li>'+
-            '<li>'+options.timer+' : <span class="label label-default count">0h: 0m: 0s</span></li>'+
+
+        var scroll_bar='<ul class="nav nav-pills" style="padding-top: 10px;">'+
+            '<li>'+options.move+' : <span class="badge">0</span></li>'+
+            '<li>'+options.timer+' : <span class="'+block+' label label-default count">0:0:0</span></li>'+
             '</ul>';
         return scroll_bar;
     }
 
 
 
-    Puzzle.prototype.Timer=function () {
-        if(plag.minutes==59) {
-            plag.hour++;
-            plag.minutes=0;
+    Puzzle.prototype.Timer=function (plagin,p) {
+
+        if(p.minutes==59) {
+            p.hour++;
+            p.timer=0;
         }
-        if(plag.timer==59) {
-            plag.minutes++;
-            plag.timer=0;
+        if(p.timer==59) {
+            p.minutes++;
+            p.timer=0;
         }
-        plag.timer++;
-        $('.count').html(plag.hour+'h: '+plag.minutes+'m: '+plag.timer+'s');
-        setTimeout(arguments.callee, 1000);
+        p.timer++;
+        $(plagin.selector+" .count").html(p.hour+':'+p.minutes+':'+p.timer);
+
+        p.timeoutId=setTimeout(function() { p.Timer(plagin,p); }, 1000);
     }
 
 
     Puzzle.prototype.random=function (plagin) {
 
-        var block=plagin.parentNode.classList[0];
-        for (var a = $.makeArray($("."+block+" .bl")), b =a.length-1 ; 0 < b; b--) {
+        for (var a = $.makeArray($(plagin+" .bl")), b =a.length-1 ; 0 < b; b--) {
             var e = Math.floor(Math.random() * (b + 1)),
                 g = a[e];
             a[e] = a[b];
@@ -170,63 +175,90 @@
 
     }
 
-    Puzzle.prototype.Remove=function () {
-        Puzzle.prototype.moves=0;
-        Puzzle.prototype.timer=0;
-        Puzzle.prototype.minutes=0;
-        Puzzle.prototype.hour=0;
+    Puzzle.prototype.Remove=function (p){
+        this.moves=0;
+        this.timer=0;
+        this.minutes=0;
+        this.hour=0;
 
     }
-    Puzzle.prototype.Start=function () {
 
-        //Puzzle.prototype.Remove();
-        Puzzle.prototype.init;
+    Puzzle.prototype.clearTimer=function (plagin,p) {
+        clearTimeout(p.timeoutId);
+    }
 
-        var elements=Puzzle.prototype.random(this);
-        var block=this.parentNode.classList[0];
-        $('.'+block).empty();
+
+    Puzzle.prototype.Start=function (plagin,p) {
+
+
+
+        var elements=this.random(plagin.selector);
+
+        this.clearTimer(plagin,p);
+
+        this.Remove(p);
+
+
+        var block=plagin.selector;
+        $(block).empty();
         for(var i=0; i<elements.length; i++){
 
             if (!$(elements[i]).is(".id"+options.size)) {
-                var a=$(elements[i]).appendTo('.'+block);
+                var a=$(elements[i]).appendTo(block);
             } else {
-                var a=$('<div class="bl id" style="  width:'+100/options.field+'%; height: '+100/options.field+'%;     background-position: '+elements[i].style.backgroundPosition+'"></div>').appendTo('.'+block);
+                var a=$('<div />').
+                addClass('bl id').
+                css("width",elements[i].style.width /*100/options.field+"%"*/).
+                css("height",elements[i].style.height /*100/options.field+"%"*/).
+                css("background-position",elements[i].style.backgroundPosition).
+                appendTo(block);
             }
-
-            a.click(Puzzle.prototype.click);
+            a.click(function () {
+                p.Click(plagin,p,this);
+            });
 
 
 
         }
 
-        $('.'+block).css("background-image","url(/img/"+options.transparency+")");
-        $('.'+block).css("background-size"," cover");
+        $(block).css("background-image","url(/img/"+this.transparency+")");
+        $(block).css("background-size"," cover");
 
 
+        //$('<div />', {id: 'cell-' + i})
 
 
+        var b=plagin.selector.replace(/\./g, "");
+
+        var buttom='<div class="scrol_bar_'+b+'"><button type="button" class="btn btn-default">'+options.buttom_2+'</button></div>';
+
+        var restart=$(buttom).appendTo(block);
+        restart.click(function () {
+            p.Start(plagin,p);
+        });
 
 
-        var buttom='<div class="scrol_bar_'+block+'"><button type="button" class="btn btn-default">'+options.buttom_2+'</button></div>';
+        $(this.Moves(block,p)).appendTo(".scrol_bar_"+b);
 
-        var restart=$(buttom).appendTo('.'+block);
-        restart.click(Puzzle.prototype.Start);
-        restart.load( Puzzle.prototype.Timer());
+        this.Timer(plagin,p);
 
-        $(Puzzle.prototype.Moves()).appendTo(".scrol_bar_"+block);
+
 
 
     }
     Puzzle.prototype.init = function(plagin,options) {
 
+        var p=this;
 
+        this.field=options.field;
+        this.transparency=options.transparency;
 
         $(plagin.selector).addClass('blocks');
 
 
 
         for(var i=0; i<=options.size; i++)
-                $('<div class="bl block_color id'+i+'"></div>').appendTo(plagin);
+                $('<div class="bl id'+i+'"></div>').appendTo(plagin);
 
         $(plagin.selector+" .bl").css("background-size",options.field+"00%");
         $(plagin.selector+" .bl").css("width",100/options.field+"%");
@@ -248,10 +280,39 @@
         var buttom='<button type="button" class="btn btn-default">'+options.buttom_1+'</button>';
         var start=$(buttom).appendTo(plagin.selector);
 
-        start.click(this.Start);
+        start.click(function () {
+            p.Start(plagin,p);
+        });
 
 
     }
+
+
+
+    Puzzle.prototype.Fold=function () {
+        var x=0;
+        while(i=options.size){
+
+
+            var j=0;
+            for(j=0; j<=namber.length; j++)
+                if ($(namber[j]).is(".id")){
+                    x=j;
+                    break;
+                }
+
+            if( this._left(i,j) && this._right(i,j))
+                if(j==i+1||j==i-1||j==i+this.field||j==i-this.field)
+                    return true;
+            return false;
+
+
+            i++;
+
+        }
+    }
+
+
 
 
     $.fn.build_puzzle=function (options) {

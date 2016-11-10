@@ -31,8 +31,8 @@
 <script>
     $(function () {
         $('.block').build_puzzle({buttom_1 : 'Play'});
-        $('.block1').build_puzzle();
-        $('.block5').build_puzzle({img: 'multfilm_Futurama_minion_Bender_25222.jpg'});
+        $('.block1').build_puzzle({ size:   80, field:  9});
+        $('.block5').build_puzzle({img: 'multfilm_Futurama_minion_Bender_25222.jpg',size:   8, field:  3,transparency:''});
     })
 </script>
 </body>
